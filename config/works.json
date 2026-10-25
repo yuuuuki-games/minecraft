@@ -1,74 +1,74 @@
 [
   {
     "name": "動物園の謎を解け!!",
-    "tag_prefix": "動物園の謎を解け!!"
+    "tag_prefix": "the_mystery_of_the_zoo"
   },
   {
     "name": "海上美術館に隠された秘密",
-    "tag_prefix": "海上美術館に隠された秘密"
+    "tag_prefix": "secrets_of_the_floating_museum"
   },
   {
     "name": "消えた村人たちと湖の秘密",
-    "tag_prefix": "消えた村人たちと湖の秘密"
+    "tag_prefix": "the_missing_villagers_and_the_secret_of_the_lake"
   },
   {
     "name": "敵のアジトは温泉旅館",
-    "tag_prefix": "敵のアジトは温泉旅館"
+    "tag_prefix": "the_enemy.s_hideout"
   },
   {
     "name": "太古の石に連れられて～研究所編～",
-    "tag_prefix": "太古の石に連れられて～研究所編～"
+    "tag_prefix": "led_by_the_ancient_stone_the_laboratory"
   },
   {
     "name": "太古の石に連れられて～迷宮編～",
-    "tag_prefix": "太古の石に連れられて～迷宮編～"
+    "tag_prefix": "led_by_the_ancient_stone_the_labyrinth"
   },
   {
     "name": "夏のビーチのとある一日",
-    "tag_prefix": "夏のビーチのとある一日"
+    "tag_prefix": "a_day_at_the_summer_beach"
   },
   {
     "name": "豪華客船からの招待状",
-    "tag_prefix": "豪華客船からの招待状"
+    "tag_prefix": "invitation_to_a_luxury_cruise"
   },
   {
     "name": "PARADISE BREAK",
-    "tag_prefix": "PARADISE_BREAK"
+    "tag_prefix": "paradise_break"
   },
   {
     "name": "ブラック企業からの退社",
-    "tag_prefix": "ブラック企業からの退社"
+    "tag_prefix": "escape_from_the_black_company"
   },
   {
     "name": "境界の夜祭",
-    "tag_prefix": "境界の夜祭"
+    "tag_prefix": "the_night_festival_at_the_boundary"
   },
   {
     "name": "初詣に行こう！",
-    "tag_prefix": "初詣に行こう！"
+    "tag_prefix": "lets_visit_the_new_years_shrine"
   },
   {
     "name": "恋したナースは行方不明",
-    "tag_prefix": "恋したナースは行方不明"
+    "tag_prefix": "the_missing_nurse_he_fell_in_love_with"
   },
   {
     "name": "エンドレス・スピーチ",
-    "tag_prefix": "エンドレス_スピーチ"
+    "tag_prefix": "endless_speech"
   },
   {
     "name": "脱出マップテンプレート",
-    "tag_prefix": "脱出マップテンプレート"
+    "tag_prefix": "escape_map_template"
   },
   {
     "name": "かくれんぼ村からの脱出",
-    "tag_prefix": "かくれんぼ村からの脱出"
+    "tag_prefix": "escape_from_hide_and_seek_village"
   },
   {
     "name": "メゾン舞倉",
-    "tag_prefix": "メゾン舞倉"
+    "tag_prefix": "maison_maikura"
   },
   {
     "name": "脱獄のアイデア",
-    "tag_prefix": "脱獄のアイデア"
+    "tag_prefix": "the_great_prison_break"
   }
 ]
