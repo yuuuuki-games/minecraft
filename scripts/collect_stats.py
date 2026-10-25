@@ -83,6 +83,7 @@ def make_graph(rows, work_names):
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
 
+    plt.rcParams["font.family"] = "Noto Sans CJK JP"
     GRAPH_DIR.mkdir(parents=True, exist_ok=True)
     dates_in_data = [datetime.strptime(d, "%Y-%m-%d").date() for d, _ in rows]
     if not dates_in_data:
