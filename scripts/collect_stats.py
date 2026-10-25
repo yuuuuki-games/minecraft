@@ -13,7 +13,6 @@ DATA_DIR = ROOT / "data"
 GRAPH_DIR = ROOT / "graphs"
 CSV_PATH = DATA_DIR / "downloads.csv"
 SNAPSHOT_PATH = DATA_DIR / "asset-snapshots.json"
-GRAPH_PATH = GRAPH_DIR / "downloads.svg"
 
 OWNER, REPO = os.environ["GITHUB_REPOSITORY"].split("/", 1)
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
@@ -77,7 +76,7 @@ def save_csv(rows):
             writer.writerow({"date": date, "work": work, "downloads": count})
 
 
-def make_graph(rows, work_names):
+def make_graph(rows, work_name, graph_path):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -85,13 +84,17 @@ def make_graph(rows, work_names):
 
     plt.rcParams["font.family"] = "Noto Sans CJK JP"
     GRAPH_DIR.mkdir(parents=True, exist_ok=True)
-    dates_in_data = [datetime.strptime(d, "%Y-%m-%d").date() for d, _ in rows]
+    dates_in_data = [
+        datetime.strptime(date, "%Y-%m-%d").date()
+        for date, name in rows
+        if name == work_name
+    ]
     if not dates_in_data:
         plt.figure(figsize=(10, 4.5))
         plt.text(0.5, 0.5, "Download history will appear after the first run.",
                  ha="center", va="center")
         plt.axis("off")
-        plt.savefig(GRAPH_PATH, format="svg", bbox_inches="tight")
+        plt.savefig(graph_path, format="svg", bbox_inches="tight")
         plt.close()
         return
 
@@ -104,19 +107,17 @@ def make_graph(rows, work_names):
         day += timedelta(days=1)
 
     plt.figure(figsize=(11, 5))
-    for work in work_names:
-        values = [rows.get((d.isoformat(), work), 0) for d in all_dates]
-        plt.plot(all_dates, values, marker="o", markersize=3, linewidth=1.8, label=work)
-    plt.title("Daily GitHub Release Downloads")
+    values = [rows.get((d.isoformat(), work_name), 0) for d in all_dates]
+    plt.plot(all_dates, values, marker="o", markersize=3, linewidth=1.8)
+    plt.title(work_name)
     plt.xlabel("Date (Japan Standard Time)")
     plt.ylabel("Downloads per day")
     plt.grid(True, alpha=0.3)
     plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
     plt.gcf().autofmt_xdate()
-    plt.legend(loc="best")
     plt.tight_layout()
-    plt.savefig(GRAPH_PATH, format="svg", bbox_inches="tight")
+    plt.savefig(graph_path, format="svg", bbox_inches="tight")
     plt.close()
 
 
@@ -176,7 +177,9 @@ def main():
         json.dumps(current_snapshots, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    make_graph(rows, [w["name"] for w in works])
+    for index, work in enumerate(works, start=1):
+        graph_path = GRAPH_DIR / f"downloads-{index:02d}.svg"
+        make_graph(rows, work["name"], graph_path)
 
     print(f"Updated statistics for {TODAY} (JST).")
     for name, delta in delta_by_work.items():
