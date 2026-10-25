@@ -1,11 +1,18 @@
 # YuuuuKi制作 Minecraft配布ワールド
+YuuuuKiです。Minecraft統合版でワールドを制作しています。  
+このリポジトリのReleasesで配布しています。  
+各ワールドの詳細はホームページやYouTubeチャンネルをご覧ください。  
 
+- [ホームページ](https://yuuuuki2022-hp.wixsite.com/website)
+- [YouTube](https://www.youtube.com/@yuuuuki_games)
+- [X](https://x.com/yuuuuki_games)
+- [ブログ](https://yuuuuki.hateblo.jp/)
 
-## ワールドのダウンロード統計
+## ダウンロード統計
 
-Release の添付ファイルの累計ダウンロード数を、日本時間の実行時点ごとに表示します。
-履歴はこの方式での最初の実行日から記録されます。添付ファイルが削除された場合など、
-GitHub API から取得できる対象ファイルが減ると、合計値も減少することがあります。
+- Release で公開されている各ワールドの累計DL数を表示します。
+- 毎日、日本時間9:00に更新されます。
+- 手動で実行した場合はその日のDL数が上書きされます。
 
 ### 全ワールド累計ダウンロード数
 ![全ワールドの累計ダウンロード数](graphs/downloads-all.svg)
