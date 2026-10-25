@@ -11,8 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT / "config" / "works.json"
 DATA_DIR = ROOT / "data"
 GRAPH_DIR = ROOT / "graphs"
-CSV_PATH = DATA_DIR / "downloads.csv"
-SNAPSHOT_PATH = DATA_DIR / "asset-snapshots.json"
+CUMULATIVE_CSV_PATH = DATA_DIR / "cumulative-downloads.csv"
 
 OWNER, REPO = os.environ["GITHUB_REPOSITORY"].split("/", 1)
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
@@ -51,17 +50,10 @@ def get_releases():
     return releases
 
 
-def load_json(path, default):
-    if not path.exists():
-        return default
-    with path.open("r", encoding="utf-8") as f:
-        return json.load(f)
-
-
 def load_csv():
     rows = {}
-    if CSV_PATH.exists():
-        with CSV_PATH.open("r", encoding="utf-8-sig", newline="") as f:
+    if CUMULATIVE_CSV_PATH.exists():
+        with CUMULATIVE_CSV_PATH.open("r", encoding="utf-8-sig", newline="") as f:
             for row in csv.DictReader(f):
                 rows[(row["date"], row["work"])] = int(row["downloads"])
     return rows
@@ -69,7 +61,7 @@ def load_csv():
 
 def save_csv(rows):
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    with CSV_PATH.open("w", encoding="utf-8", newline="") as f:
+    with CUMULATIVE_CSV_PATH.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["date", "work", "downloads"])
         writer.writeheader()
         for (date, work), count in sorted(rows.items()):
@@ -81,40 +73,47 @@ def make_graph(rows, work_name, graph_path):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
+    from matplotlib.ticker import MaxNLocator
 
     plt.rcParams["font.family"] = "Noto Sans CJK JP"
     GRAPH_DIR.mkdir(parents=True, exist_ok=True)
-    dates_in_data = [
-        datetime.strptime(date, "%Y-%m-%d").date()
-        for date, name in rows
+    observations = {
+        datetime.strptime(date, "%Y-%m-%d").date(): count
+        for (date, name), count in rows.items()
         if name == work_name
-    ]
-    if not dates_in_data:
+    }
+    if not observations:
         plt.figure(figsize=(10, 4.5))
-        plt.text(0.5, 0.5, "Download history will appear after the first run.",
+        plt.text(0.5, 0.5, "累計ダウンロード数のデータはありません",
                  ha="center", va="center")
         plt.axis("off")
         plt.savefig(graph_path, format="svg", bbox_inches="tight")
         plt.close()
         return
 
-    first = min(dates_in_data)
-    last = max(max(dates_in_data), datetime.strptime(TODAY, "%Y-%m-%d").date())
+    first = min(observations)
+    last = max(max(observations), datetime.strptime(TODAY, "%Y-%m-%d").date())
     all_dates = []
+    values = []
     day = first
+    latest_value = observations[first]
     while day <= last:
         all_dates.append(day)
+        latest_value = observations.get(day, latest_value)
+        values.append(latest_value)
         day += timedelta(days=1)
 
     plt.figure(figsize=(11, 5))
-    values = [rows.get((d.isoformat(), work_name), 0) for d in all_dates]
     plt.plot(all_dates, values, marker="o", markersize=3, linewidth=1.8)
-    plt.title(work_name)
-    plt.xlabel("Date (Japan Standard Time)")
-    plt.ylabel("Downloads per day")
+    plt.title(f"{work_name} の累計ダウンロード数")
+    plt.xlabel("日付（日本時間）")
+    plt.ylabel("累計ダウンロード数")
     plt.grid(True, alpha=0.3)
-    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+    axis = plt.gca()
+    axis.set_ylim(0, max(1, max(values) * 1.1))
+    axis.yaxis.set_major_locator(MaxNLocator(integer=True))
+    axis.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=4, maxticks=8))
+    axis.xaxis.set_major_formatter(mdates.DateFormatter("%Y/%m/%d"))
     plt.gcf().autofmt_xdate()
     plt.tight_layout()
     plt.savefig(graph_path, format="svg", bbox_inches="tight")
@@ -123,15 +122,8 @@ def make_graph(rows, work_name, graph_path):
 
 def main():
     works = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-    snapshots = load_json(SNAPSHOT_PATH, {})
     rows = load_csv()
-
-    # Prepare a zero row for each configured work for today.
-    for work in works:
-        rows.setdefault((TODAY, work["name"]), 0)
-
-    delta_by_work = {work["name"]: 0 for work in works}
-    current_snapshots = dict(snapshots)
+    cumulative_by_work = {work["name"]: 0 for work in works}
     releases = get_releases()
 
     for release in releases:
@@ -152,38 +144,19 @@ def main():
             if not asset_name.endswith(ASSET_EXTENSIONS):
                 continue
 
-            asset_id = str(asset["id"])
-            current_count = int(asset.get("download_count", 0))
+            cumulative_by_work[work_name] += int(asset.get("download_count", 0))
 
-            # First time seeing an asset: use its current count as the baseline,
-            # not as today's downloads. This avoids counting historical downloads
-            # as if they happened today.
-            if asset_id in snapshots:
-                previous_count = int(snapshots[asset_id])
-                delta = max(0, current_count - previous_count)
-                delta_by_work[work_name] += delta
-
-            current_snapshots[asset_id] = current_count
-
-    # Add today's increments. If manually rerun on the same JST date, add only
-    # the newly observed increments, so repeated runs do not overwrite the day.
-    for work_name, delta in delta_by_work.items():
-        key = (TODAY, work_name)
-        rows[key] = rows.get(key, 0) + delta
+    for work_name, total in cumulative_by_work.items():
+        rows[(TODAY, work_name)] = total
 
     save_csv(rows)
-    SNAPSHOT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SNAPSHOT_PATH.write_text(
-        json.dumps(current_snapshots, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
     for index, work in enumerate(works, start=1):
         graph_path = GRAPH_DIR / f"downloads-{index:02d}.svg"
         make_graph(rows, work["name"], graph_path)
 
     print(f"Updated statistics for {TODAY} (JST).")
-    for name, delta in delta_by_work.items():
-        print(f"- {name}: +{delta}")
+    for name, total in cumulative_by_work.items():
+        print(f"- {name}: {total} total downloads")
 
 
 if __name__ == "__main__":
