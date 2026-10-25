@@ -148,15 +148,19 @@ def main():
 
     for work_name, total in cumulative_by_work.items():
         rows[(TODAY, work_name)] = total
+    all_worlds_total = sum(cumulative_by_work.values())
+    rows[(TODAY, "全ワールド")] = all_worlds_total
 
     save_csv(rows)
     for index, work in enumerate(works, start=1):
         graph_path = GRAPH_DIR / f"downloads-{index:02d}.svg"
         make_graph(rows, work["name"], graph_path)
+    make_graph(rows, "全ワールド", GRAPH_DIR / "downloads-all.svg")
 
     print(f"Updated statistics for {TODAY} (JST).")
     for name, total in cumulative_by_work.items():
         print(f"- {name}: {total} total downloads")
+    print(f"- All worlds: {all_worlds_total} total downloads")
 
 
 if __name__ == "__main__":
