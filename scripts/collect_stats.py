@@ -108,12 +108,14 @@ def make_graph(rows, work_name, graph_path):
 
     plt.figure(figsize=(11, 5))
     all_values = []
+    total_values = [0] * len(all_dates)
     for file_format, format_data in sorted(observations.items()):
         values = []
         latest_value = 0
-        for date in all_dates:
+        for index, date in enumerate(all_dates):
             latest_value = format_data.get(date, latest_value)
             values.append(latest_value)
+            total_values[index] += latest_value
         all_values.extend(values)
         plt.plot(
             all_dates,
@@ -123,6 +125,16 @@ def make_graph(rows, work_name, graph_path):
             linewidth=1.8,
             label=file_format,
         )
+    all_values.extend(total_values)
+    plt.plot(
+        all_dates,
+        total_values,
+        marker="o",
+        markersize=3,
+        linewidth=2.4,
+        label="合計",
+        zorder=3,
+    )
     plt.title(f"{work_name} の形式別累計ダウンロード数")
     plt.xlabel("日付（日本時間）")
     plt.ylabel("累計ダウンロード数")
@@ -130,7 +142,7 @@ def make_graph(rows, work_name, graph_path):
     axis = plt.gca()
     axis.set_ylim(0, max(1, max(all_values) * 1.1))
     axis.yaxis.set_major_locator(MaxNLocator(integer=True))
-    axis.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=4, maxticks=8))
+    axis.xaxis.set_major_locator(mdates.DayLocator(interval=1))
     axis.xaxis.set_major_formatter(mdates.DateFormatter("%Y/%m/%d"))
     axis.legend(title="形式")
     plt.gcf().autofmt_xdate()
